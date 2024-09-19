@@ -29,6 +29,23 @@ app_protocols = {
     21: "FTP"
 }
 
+def interpret_flags(flags):
+    flag_str = []
+    if flags & 0x02:  # SYN
+        flag_str.append("SYN")
+    if flags & 0x10:  # ACK
+        flag_str.append("ACK")
+    if flags & 0x01:  # FIN
+        flag_str.append("FIN")
+    if flags & 0x04:  # RST
+        flag_str.append("RST")
+    if flags & 0x08:  # PSH
+        flag_str.append("PSH")
+    if flags & 0x20:  # URG
+        flag_str.append("URG")
+    return " ".join(flag_str) if flag_str else "None"
+
+
 # Iterar sobre cada paquete en el archivo
 for packet in packets:
     # Verificar si el paquete tiene capa Ethernet (MAC)
@@ -55,7 +72,7 @@ for packet in packets:
         src_port = packet[scapy.TCP].sport
         dst_port = packet[scapy.TCP].dport
         protocol = "TCP"
-        flags = packet[scapy.TCP].flags
+        flags = interpret_flags(packet[scapy.TCP].flags)  # Interpretar flags TCP
         app = app_protocols.get(src_port) or app_protocols.get(dst_port) or "Desconocido"
     elif packet.haslayer(scapy.UDP):
         src_port = packet[scapy.UDP].sport
