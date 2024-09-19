@@ -23,7 +23,7 @@ pip install scapy tabulate colorama
 2. Run the script from the command line with the `.pcapng` file as an argument:
 
    ```bash
-   python script.py yourfile.pcapng
+   python table_wireshark.py yourfile.pcapng
    ```
 
    Replace `yourfile.pcapng` with the actual filename of your capture file.
