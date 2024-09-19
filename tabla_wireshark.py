@@ -101,7 +101,7 @@ headers = [
     "MAC Origen", "MAC Destino", "IP Origen", "IP Destino", 
     "Puerto Origen", "Puerto Destino", "Protocolo", "Aplicación", "Flags", "Tipo"
 ]
-table = tabulate(packet_data, headers, tablefmt="grid")
+table = tabulate(packet_data, headers, tablefmt="plain")
 
 # Mostrar el gateway detectado
 if gateway_ip:
@@ -112,16 +112,13 @@ else:
 # Mostrar tabla
 print(table)
 
-# Preguntar al usuario si desea generar un archivo CSV
-save_csv = input("Do you want to save the results as a CSV file? (y/n): ")
-
-if save_csv.lower() == 'y':
-    csv_file = "packet_data.csv"
-    with open(csv_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(headers)  # Escribir los encabezados
-        for row in packet_data:
-            # Remover los colores para el CSV
-            clean_row = [Fore.RESET + str(col).replace(Fore.GREEN, "").replace(Style.RESET_ALL, "") for col in row]
-            writer.writerow(clean_row)
-    print(f"CSV file '{csv_file}' has been saved successfully.")
+# Guardar los resultados en un archivo CSV
+csv_file = "packet_data.csv"
+with open(csv_file, mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(headers)  # Escribir los encabezados
+    for row in packet_data:
+        # Remover los colores para el CSV
+        clean_row = [str(col).replace(Fore.GREEN, "").replace(Style.RESET_ALL, "") for col in row]
+        writer.writerow(clean_row)
+print(f"CSV file '{csv_file}' has been saved successfully.")
