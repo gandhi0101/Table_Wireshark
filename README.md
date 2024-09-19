@@ -12,7 +12,7 @@ Before using this script, ensure that you have the following Python packages ins
 You can install these dependencies with the following command:
 
 ```bash
-pip install scapy tabulate
+pip install scapy tabulate colorama
 ```
 
 ## Usage
