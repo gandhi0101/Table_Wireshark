@@ -1,8 +1,8 @@
 import sys
 import scapy.all as scapy
 from tabulate import tabulate
+import pandas as pd  # Importar pandas para la creación del archivo Excel
 from colorama import Fore, Style
-import csv
 
 # Verificar si se han pasado los argumentos correctamente
 if len(sys.argv) != 2:
@@ -19,7 +19,7 @@ packets = scapy.rdpcap(pcapng_file)
 packet_data = []
 gateway_ip = None  # Para almacenar el IP del gateway si se detecta
 
-# Diccionario para asociar los puertos con protocolos conocidos
+# Definir algunas aplicaciones basadas en los puertos comunes
 app_protocols = {
     80: "HTTP",
     443: "HTTPS",
@@ -31,7 +31,6 @@ app_protocols = {
     21: "FTP"
 }
 
-# Función para interpretar flags TCP
 def interpret_flags(flags):
     flag_str = []
     if flags & 0x02:  # SYN
@@ -86,7 +85,7 @@ for packet in packets:
         src_port = packet[scapy.UDP].sport
         dst_port = packet[scapy.UDP].dport
         protocol = "UDP"
-        app = app_protocols.get(src_port) or app_protocols.get(dst_port) or "Unknown"
+        app = app_protocols.get(src_port) or app_protocols.get(dst_port) or "Desconocido"
 
     # Si se encuentra el gateway en el IP de destino o de origen, resáltalo
     if src_ip == gateway_ip or dst_ip == gateway_ip:
@@ -96,32 +95,30 @@ for packet in packets:
     # Añadir los datos a la lista
     packet_data.append([src_mac, dst_mac, src_ip, dst_ip, src_port, dst_port, protocol, app, flags, eth_type])
 
-# Generar tabla
+# Definir encabezados
 headers = [
     "MAC Origen", "MAC Destino", "IP Origen", "IP Destino", 
     "Puerto Origen", "Puerto Destino", "Protocolo", "Aplicación", "Flags", "Tipo"
 ]
-table = tabulate(packet_data, headers, tablefmt="grid")
 
 # Mostrar el gateway detectado
 if gateway_ip:
     print(f"{Fore.GREEN}Detected Gateway IP: {gateway_ip}{Style.RESET_ALL}")
 else:
     print("No Gateway detected.")
-
-# Mostrar tabla
+    
+# Generar tabla y mostrarla
+table = tabulate(packet_data, headers, tablefmt="grid")
 print(table)
 
-# Preguntar al usuario si desea generar un archivo CSV
-save_csv = input("Do you want to save the results as a CSV file? (y/n): ")
+# Crear un DataFrame de pandas con los datos
+df = pd.DataFrame(packet_data, columns=headers)
 
-if save_csv.lower() == 'y':
-    csv_file = "packet_data.csv"
-    with open(csv_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(headers)  # Escribir los encabezados
-        for row in packet_data:
-            # Remover los colores para el CSV
-            clean_row = [Fore.RESET + str(col).replace(Fore.GREEN, "").replace(Style.RESET_ALL, "") for col in row]
-            writer.writerow(clean_row)
-    print(f"CSV file '{csv_file}' has been saved successfully.")
+# Remover los caracteres de color para el archivo Excel
+df = df.applymap(lambda x: str(x).replace(Fore.GREEN, "").replace(Style.RESET_ALL, ""))
+
+# Guardar la tabla en un archivo Excel
+output_excel_file = "packet_data.xlsx"
+df.to_excel(output_excel_file, index=False)
+
+print(f"La tabla se ha guardado correctamente en el archivo {output_excel_file}")

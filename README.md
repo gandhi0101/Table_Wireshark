@@ -14,6 +14,9 @@ You can install these dependencies with the following command:
 
 ```bash
 pip install scapy tabulate colorama
+
+pip install pandas openpyxl
+
 ```
 
 ## Usage
