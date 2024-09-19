@@ -1,6 +1,6 @@
-# PCAPNG Packet Table Extractor
+## PCAPNG Packet Table Extractor
 
-This Python script extracts packet details from a `.pcapng` file and generates a table displaying information such as MAC addresses, IP addresses, ports, protocol, application, and TCP flags.
+This Python script extracts packet details from a `.pcapng` file and generates a table displaying information such as MAC addresses, IP addresses, ports, protocol, application, TCP flags, and the network gateway, if found.
 
 ## Requirements
 
@@ -8,11 +8,12 @@ Before using this script, ensure that you have the following Python packages ins
 
 - **Scapy**: Used to analyze network packets.
 - **Tabulate**: Used to display the packet data in a table format.
+- **Colorama**: Used to highlight the gateway in the output.
 
 You can install these dependencies with the following command:
 
 ```bash
-pip install scapy tabulate
+pip install scapy tabulate colorama
 ```
 
 ## Usage
@@ -22,7 +23,7 @@ pip install scapy tabulate
 2. Run the script from the command line with the `.pcapng` file as an argument:
 
    ```bash
-   python script.py yourfile.pcapng
+   python table_wireshark.py yourfile.pcapng
    ```
 
    Replace `yourfile.pcapng` with the actual filename of your capture file.
@@ -31,8 +32,8 @@ pip install scapy tabulate
 
    - **MAC Origen**: Source MAC address
    - **MAC Destino**: Destination MAC address
-   - **IP Origen**: Source IP address
-   - **IP Destino**: Destination IP address
+   - **IP Origen**: Source IP address (highlighted in green if it's the gateway)
+   - **IP Destino**: Destination IP address (highlighted in green if it's the gateway)
    - **Puerto Origen**: Source port (for TCP/UDP packets)
    - **Puerto Destino**: Destination port (for TCP/UDP packets)
    - **Protocolo**: Protocol used (TCP, UDP, etc.)
@@ -40,20 +41,20 @@ pip install scapy tabulate
    - **Flags**: TCP flags (for TCP packets)
    - **Tipo**: Ethernet type (IPv4, IPv6, etc.)
 
+   Additionally, if a gateway is detected via ARP packets, the script will print and highlight the detected gateway IP address.
+
 ## Example
 
 ```bash
-python script.py capture.pcapng
+python table_wireshark.py capture.pcapng
 ```
 
-This command will generate a table with the network traffic details from the `capture.pcapng` file.
+This command will generate a table with the network traffic details from the `capture.pcapng` file, and the detected gateway IP (if found) will be highlighted in green.
 
 ## Notes
 
 - The application column will attempt to infer the service based on standard ports (e.g., 80 for HTTP, 443 for HTTPS).
 - If no recognized application is detected, the script will mark it as "Unknown."
 - Ensure that the `.pcapng` file is valid and contains network traffic data for accurate analysis.
+- The script now detects and highlights the gateway based on ARP responses.
 
----
-
-Feel free to customize it further if you have specific needs!

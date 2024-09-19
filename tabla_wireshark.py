@@ -2,6 +2,8 @@ import sys
 import scapy.all as scapy
 from tabulate import tabulate
 import pandas as pd  # Importar pandas para la creación del archivo Excel
+from colorama import Fore, Style
+
 
 # Verificar si se han pasado los argumentos correctamente
 if len(sys.argv) != 2:
@@ -16,6 +18,7 @@ packets = scapy.rdpcap(pcapng_file)
 
 # Crear lista para almacenar la información extraída
 packet_data = []
+gateway_ip = None  # Para almacenar el IP del gateway si se detecta
 
 # Definir algunas aplicaciones basadas en los puertos comunes
 app_protocols = {
@@ -46,6 +49,13 @@ def interpret_flags(flags):
     return " ".join(flag_str) if flag_str else "None"
 
 
+# Buscar el gateway en paquetes ARP
+for packet in packets:
+    if packet.haslayer(scapy.ARP) and packet[scapy.ARP].op == 2:  # Respuesta ARP
+        gateway_ip = packet[scapy.ARP].psrc  # IP de origen de la respuesta ARP (posible gateway)
+        break
+
+
 # Iterar sobre cada paquete en el archivo
 for packet in packets:
     # Verificar si el paquete tiene capa Ethernet (MAC)
@@ -72,13 +82,20 @@ for packet in packets:
         src_port = packet[scapy.TCP].sport
         dst_port = packet[scapy.TCP].dport
         protocol = "TCP"
-        flags = interpret_flags(packet[scapy.TCP].flags)  # Interpretar flags TCP
-        app = app_protocols.get(src_port) or app_protocols.get(dst_port) or "Desconocido"
+
+        flags = interpret_flags(packet[scapy.TCP].flags)
+        app = app_protocols.get(src_port) or app_protocols.get(dst_port) or "Unknown"
+
     elif packet.haslayer(scapy.UDP):
         src_port = packet[scapy.UDP].sport
         dst_port = packet[scapy.UDP].dport
         protocol = "UDP"
         app = app_protocols.get(src_port) or app_protocols.get(dst_port) or "Desconocido"
+
+    # Si se encuentra el gateway en el IP de destino o de origen, resáltalo
+    if src_ip == gateway_ip or dst_ip == gateway_ip:
+        src_ip = Fore.GREEN + src_ip + Style.RESET_ALL if src_ip == gateway_ip else src_ip
+        dst_ip = Fore.GREEN + dst_ip + Style.RESET_ALL if dst_ip == gateway_ip else dst_ip
 
     # Añadir los datos a la lista
     packet_data.append([src_mac, dst_mac, src_ip, dst_ip, src_port, dst_port, protocol, app, flags, eth_type])
@@ -89,6 +106,16 @@ headers = [
     "Puerto Origen", "Puerto Destino", "Protocolo", "Aplicación", "Flags", "Tipo"
 ]
 
+
+
+
+
+# Mostrar el gateway detectado
+if gateway_ip:
+    print(f"{Fore.GREEN}Detected Gateway IP: {gateway_ip}{Style.RESET_ALL}")
+else:
+    print("No Gateway detected.")
+    
 # Generar tabla y mostrarla
 table = tabulate(packet_data, headers, tablefmt="grid")
 print(table)
