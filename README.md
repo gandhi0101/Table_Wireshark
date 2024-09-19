@@ -1,7 +1,3 @@
-Here’s a simple README in English explaining how to use the script:
-
----
-
 # PCAPNG Packet Table Extractor
 
 This Python script extracts packet details from a `.pcapng` file and generates a table displaying information such as MAC addresses, IP addresses, ports, protocol, application, and TCP flags.
